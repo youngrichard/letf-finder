@@ -86,3 +86,15 @@ def test_low_confidence_when_factor_unparseable():
     d = rec("Some Direxion Leveraged Product")
     assert d is not None
     assert d["confidence"] == "low"
+
+
+def test_bulletshares_not_flagged_leveraged():
+    # 'bull' must match on a word boundary — BulletShares bond ETFs are not leveraged
+    assert rec("Invesco BulletShares 2036 Corporate Bond ETF") is None
+
+
+def test_issuer_token_rex_not_mistaken_for_underlying():
+    # 'T-REX' issuer token must not shadow the real underlying (NVDA)
+    d = r.build_record("XXXX", "T-REX 2X Long NVDA Daily Target ETF",
+                       VALID | {"REX"}, ETFS)
+    assert d["underlying"] == "NVDA"

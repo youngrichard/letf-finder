@@ -1,0 +1,19 @@
+/Users/richardyoung/Claude/letf-finder/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+  ETF: page 1, 1000 so far
+  ETF: page 2, 2000 so far
+  ETF: page 3, 3000 so far
+  ETF: page 4, 4000 so far
+  ETF: page 5, 5000 so far
+  ETF: page 6, 5282 so far
+  CS: page 1, 1000 so far
+  CS: page 2, 2000 so far
+  CS: page 3, 3000 so far
+  CS: page 4, 4000 so far
+  CS: page 5, 5000 so far
+  CS: page 6, 5307 so far
+
+found 780 leveraged/inverse ETFs
+  by confidence: {'high': 412, 'medium': 328, 'low': 40}
+  by tier:       {'single_stock': 400, 'sector_thematic': 367, 'index_or_etf': 13}
+wrote /Users/richardyoung/Claude/letf-finder/data/letf_universe.json

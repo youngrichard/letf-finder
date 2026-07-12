@@ -19,16 +19,18 @@ ISSUERS = [
     "microsectors", "leverage shares", "defiance", "kurv", "axs", "bank of montreal",
 ]
 
-# Words that mark a fund as leveraged or inverse.
-LEVERAGE_MARKERS = [
-    "ultrapro", "ultrashort", "ultra", "bull", "bear", "inverse",
-    "leveraged", "3x", "2x", "1.5x", "1.25x", "-1x", "-2x", "-3x",
-]
+# Strong leverage markers, matched on WORD boundaries so "bull" doesn't fire on
+# "BulletShares". Numeric markers (2x, -3x) are matched separately.
+_STRONG = re.compile(r"\b(ultrapro|ultrashort|ultra|bull|bear|inverse|leveraged)\b")
+_NUM = re.compile(r"-?\d+(?:\.\d+)?x\b")
+_SHORT = re.compile(r"\bshort\b")
 
 # Uppercase tokens that look like tickers but never are, in fund names.
+# Includes issuer tokens (e.g. REX from "T-REX") so the issuer name isn't
+# mistaken for the underlying.
 TICKER_STOPWORDS = {
     "ETF", "ETN", "US", "USD", "II", "III", "IV", "AM", "PM", "DR", "ADR",
-    "MSCI", "FTSE", "REIT", "AI",
+    "MSCI", "FTSE", "REIT", "AI", "REX",
 }
 
 
@@ -42,10 +44,12 @@ def detect_issuer(name: str) -> str | None:
 
 def is_leveraged(name: str) -> bool:
     low = name.lower()
-    if any(m in low for m in LEVERAGE_MARKERS):
+    if _STRONG.search(low) or _NUM.search(low):
         return True
-    # "ProShares Short S&P500" style: 'short' as a standalone inverse marker
-    return bool(re.search(r"\bshort\b", low)) and detect_issuer(name) is not None
+    # bare 'short' (no number, e.g. "ProShares Short S&P500") is only an inverse
+    # marker when a known leverage issuer makes it — guards against "iShares
+    # Short Treasury" style short-duration bond funds.
+    return bool(_SHORT.search(low)) and detect_issuer(name) is not None
 
 
 def parse_leverage(name: str) -> tuple[float | None, str | None]:

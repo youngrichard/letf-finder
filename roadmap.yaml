@@ -5,7 +5,7 @@ updated: 2026-07-06
 phases:
   - id: 1
     name: Data foundation and lookup
-    status: in_progress
+    status: done
     goal: >
       A self-updating map of leveraged/inverse ETFs from Polygon, queryable by
       ticker, with no hand-maintained list — recognizer rules, not a data file.
@@ -21,15 +21,20 @@ phases:
       - text: every lookup result carries the daily-reset / decay + factor caveat
         done: true
       - text: discover.py builds letf_universe.json live from Polygon
-        done: false
+        done: true
       - text: lookup(ticker) returns correct direct + index LETFs on real data
-        done: false
+        done: true
     changelog:
       - date: 2026-07-06
         note: >
-          Built the recognizer (pure, 12 offline tests green), discover.py
-          (Polygon reference-tickers pull), and lookup.py. Live run needs a
-          POLYGON_API_KEY.
+          Built the recognizer (pure, offline tests green), discover.py
+          (Polygon reference-tickers pull), and lookup.py.
+      - date: 2026-07-06
+        note: >
+          Live run: 743 leveraged/inverse ETFs discovered. Fixed 2 recognizer
+          bugs found in real data (BulletShares 'bull' false-positive;
+          T-REX issuer token shadowing underlyings). Low-confidence 40 -> 4.
+          NVDA and QQQ lookups verified correct. Phase 1 done.
 
   - id: 2
     name: Smart layer
