@@ -1,0 +1,56 @@
+project: letf-finder
+description: Find the leveraged / inverse ETFs related to any equity, self-updating.
+updated: 2026-07-06
+
+phases:
+  - id: 1
+    name: Data foundation and lookup
+    status: in_progress
+    goal: >
+      A self-updating map of leveraged/inverse ETFs from Polygon, queryable by
+      ticker, with no hand-maintained list — recognizer rules, not a data file.
+    deferred:
+      - Sector/thematic relatedness, e.g. NVDA -> SOXL — needs holdings (-> Phase 2)
+      - Metrics enrichment (ATR%, RS, extension) (-> Phase 2)
+      - Expense ratios per fund — needs another data source (-> Phase 2)
+      - Web front-end (-> Phase 3)
+      - Intraday / real-time data
+    success_criteria:
+      - text: recognizer parses factor/direction/underlying with confidence flags (offline-tested)
+        done: true
+      - text: every lookup result carries the daily-reset / decay + factor caveat
+        done: true
+      - text: discover.py builds letf_universe.json live from Polygon
+        done: false
+      - text: lookup(ticker) returns correct direct + index LETFs on real data
+        done: false
+    changelog:
+      - date: 2026-07-06
+        note: >
+          Built the recognizer (pure, 12 offline tests green), discover.py
+          (Polygon reference-tickers pull), and lookup.py. Live run needs a
+          POLYGON_API_KEY.
+
+  - id: 2
+    name: Smart layer
+    status: planned
+    goal: Sector relatedness, per-fund metrics, and expense ratios.
+    success_criteria:
+      - text: NVDA surfaces SOXL/SOXS via a semiconductor-sector link
+        done: false
+      - text: each result shows expense ratio and (optionally) live ATR%/extension
+        done: false
+    changelog:
+      - date: 2026-07-06
+        note: Deferred from Phase 1 — needs holdings + a fundamentals source.
+
+  - id: 3
+    name: Usable
+    status: planned
+    goal: A front-end anyone can use, with the risk caveats up front.
+    success_criteria:
+      - text: non-technical user can look up a ticker and understand the risks
+        done: false
+    changelog:
+      - date: 2026-07-06
+        note: Deferred until data + smart layers prove out.
