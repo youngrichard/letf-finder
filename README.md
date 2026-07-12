@@ -5,7 +5,13 @@ hand-maintained list. Point it at a ticker (NVDA, QQQ, TSLA) and get the 2x /
 3x / inverse funds tied to it, each with a plain-English risk caveat.
 
 **Decision-support, not advice.** Leveraged/inverse ETFs reset daily and decay
-over time; every result says so.
+over time.
+
+## Live demo
+
+**[youngrichard.github.io/letf-finder](https://youngrichard.github.io/letf-finder/)** — search a stock, index, or theme.
+
+![letf-finder](docs/screenshot.png)
 
 ## How it works
 
