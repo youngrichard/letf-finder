@@ -46,7 +46,7 @@ phases:
       - text: weekly automated refresh keeps the live demo current (Action + Pages)
         done: true
       - text: ETNs included in the universe (FNGU-class products discoverable)
-        done: false
+        done: true
       - text: every result shows avg daily $ volume; groups sorted by it
         done: false
       - text: recognizer refactored to a single parse pass (no duplicate marker logic)
@@ -71,6 +71,11 @@ phases:
           issuers. Low-confidence 4 -> 1 (the 1 is genuinely ambiguous);
           23 tests green. Plus hygiene: CI + badge, search guards, result
           cap, factor-less records excluded from UI payload explicitly.
+      - date: 2026-07-13
+        note: >
+          ETN coverage live: +37 products (774 total) incl. 19 MicroSectors
+          notes (BULZ/BERZ, BNKU/BNKD, 3x AI). Recognizer needed zero rule
+          changes to parse ETN naming.
 
   - id: 3
     name: Smart layer

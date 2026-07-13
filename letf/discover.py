@@ -1,10 +1,11 @@
-"""Discover the leveraged/inverse ETF universe from Polygon and write it to
+"""Discover the leveraged/inverse fund universe from Polygon and write it to
 data/letf_universe.json. Regenerate daily; new launches appear, closures drop.
 
-Pulls two lists from /v3/reference/tickers:
-  - all active ETFs   -> the candidate pool (recognizer runs over their names)
-  - all active stocks -> the set we validate parsed underlyings against
-Then runs the (offline-tested) recognizer over the ETF names.
+Pulls three lists from /v3/reference/tickers:
+  - all active ETFs + ETNs -> the candidate pool (leveraged products ship under
+    both wrappers — MicroSectors-style notes are ETNs, not ETFs)
+  - all active stocks      -> the set we validate parsed underlyings against
+Then runs the (offline-tested) recognizer over the candidate names.
 
 Needs POLYGON_API_KEY in .env or the environment. Free tier (5 req/min) works;
 the full pull is ~10 pages, so it paces itself. Raw pulls are cached so re-runs
@@ -77,15 +78,16 @@ def _fetch_all(ticker_type: str, cache: Path, refresh: bool) -> list[dict]:
 
 def discover(refresh: bool = False) -> dict:
     DATA.mkdir(exist_ok=True)
-    etfs = _fetch_all("ETF", DATA / "_etfs.json", refresh)
+    candidates = (_fetch_all("ETF", DATA / "_etfs.json", refresh)
+                  + _fetch_all("ETN", DATA / "_etns.json", refresh))
     stocks = _fetch_all("CS", DATA / "_stocks.json", refresh)
 
-    etf_tickers = {e["ticker"] for e in etfs}
-    valid = etf_tickers | {s["ticker"] for s in stocks}
+    fund_tickers = {e["ticker"] for e in candidates}
+    valid = fund_tickers | {s["ticker"] for s in stocks}
 
     records = []
-    for e in etfs:
-        rec = recognizer.build_record(e["ticker"], e.get("name", ""), valid, etf_tickers)
+    for e in candidates:
+        rec = recognizer.build_record(e["ticker"], e.get("name", ""), valid, fund_tickers)
         if rec:
             records.append(rec)
 
