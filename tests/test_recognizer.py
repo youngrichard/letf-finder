@@ -98,3 +98,27 @@ def test_issuer_token_rex_not_mistaken_for_underlying():
     d = r.build_record("XXXX", "T-REX 2X Long NVDA Daily Target ETF",
                        VALID | {"REX"}, ETFS)
     assert d["underlying"] == "NVDA"
+
+
+def test_stock_rex_can_be_an_underlying():
+    # brand-stripping (not a stopword hack) means the real stock REX still works
+    d = r.build_record("XXXX", "GraniteShares 2x Long REX Daily ETF",
+                       VALID | {"REX"}, ETFS)
+    assert d["underlying"] == "REX" and d["factor"] == 2.0
+
+
+def test_leveraged_loan_asset_class_excluded():
+    # 'leveraged loan' is an asset class, not a leveraged fund
+    assert rec("State Street SPDR S&P Leveraged Loan ETF") is None
+
+
+def test_bare_bull_from_unknown_issuer_excluded():
+    # hedge/strategy products: bull/bear with no factor and no leverage issuer
+    assert rec("TrueShares Quarterly Bull Hedge ETF") is None
+    assert rec("Simplify Bond Bull ETF") is None
+
+
+def test_bare_bull_with_number_still_counts():
+    # unknown issuer is fine when a numeric factor is present
+    d = rec("SomeNewIssuer 2X Bull WXYZ Daily ETF")
+    assert d is not None and d["factor"] == 2.0
