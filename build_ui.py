@@ -1,4 +1,5 @@
-"""Build a self-contained search UI (ui/index.html) from letf_universe.json.
+"""Build a self-contained search UI (docs/index.html, served by GitHub Pages)
+from letf_universe.json.
 
 One question -> one answer: search a stock/index/theme, get the leveraged &
 inverse funds for it, grouped bullish/bearish, sorted by magnitude. No server;
@@ -14,9 +15,11 @@ DATA = ROOT / "data"
 
 def main():
     universe = json.loads((DATA / "letf_universe.json").read_text())
+    # factor=None records can't be placed in the long/short groups — exclude
+    # them from the UI payload rather than letting them vanish silently in JS.
     recs = [{"t": r["ticker"], "n": r["name"], "f": r["factor"],
-             "u": r["underlying"], "c": r["confidence"]}
-            for r in universe["records"]]
+             "u": r["underlying"]}
+            for r in universe["records"] if r["factor"] is not None]
     out_dir = ROOT / "docs"  # served by GitHub Pages
     out_dir.mkdir(exist_ok=True)
     html = (TEMPLATE.replace("__DATA__", json.dumps(recs))
@@ -78,17 +81,29 @@ function card(r){
   const cls=r.f<0?"b-short":"b-long";
   return `<div class="row"><span class="badge ${cls}">${fac(r.f)}</span><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.n)}</span></div>`;
 }
+const CAP=60; // per group; substring searches can match hundreds of names
 function run(){
   const s=q.value.trim().toLowerCase();
   if(!s){out.innerHTML="";return}
   const U=s.toUpperCase();
-  const hits=DATA.filter(r=>r.u===U||r.t.toLowerCase()===s||r.t.toLowerCase().includes(s)||r.n.toLowerCase().includes(s));
+  // exact ticker/underlying at any length; substring matching needs >=3 chars
+  // (1-2 chars would substring-match most of the universe)
+  const hits=DATA.filter(r=>{
+    if(r.u===U||r.t===U)return true;
+    if(s.length<3)return false;
+    return r.t.toLowerCase().includes(s)||r.n.toLowerCase().includes(s);
+  });
   if(!hits.length){out.innerHTML=`<p class="empty">Nothing matches &ldquo;${esc(s)}&rdquo;. Sector matches by holdings are coming in a later version.</p>`;return}
   const bull=hits.filter(r=>r.f>0).sort((a,b)=>b.f-a.f);
   const bear=hits.filter(r=>r.f<0).sort((a,b)=>a.f-b.f);
   let h="";
-  if(bull.length)h+=`<div class="sec">Bullish <span class="n">long</span></div>`+bull.map(card).join("");
-  if(bear.length)h+=`<div class="sec">Bearish <span class="n">inverse</span></div>`+bear.map(card).join("");
+  const grp=(list,label)=>{
+    let g=`<div class="sec">${label}</div>`+list.slice(0,CAP).map(card).join("");
+    if(list.length>CAP)g+=`<p class="empty">+ ${list.length-CAP} more &mdash; narrow the search</p>`;
+    return g;
+  };
+  if(bull.length)h+=grp(bull,`Bullish <span class="n">long</span>`);
+  if(bear.length)h+=grp(bear,`Bearish <span class="n">inverse</span>`);
   out.innerHTML=h;
 }
 q.addEventListener("input",run);

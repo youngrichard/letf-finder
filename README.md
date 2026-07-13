@@ -1,5 +1,7 @@
 # letf-finder
 
+[![CI](https://github.com/youngrichard/letf-finder/actions/workflows/ci.yml/badge.svg)](https://github.com/youngrichard/letf-finder/actions/workflows/ci.yml)
+
 Find the leveraged / inverse ETFs related to any equity — self-updating, no
 hand-maintained list. Point it at a ticker (NVDA, QQQ, TSLA) and get the 2x /
 3x / inverse funds tied to it, each with a plain-English risk caveat.

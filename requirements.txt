@@ -1,2 +1,3 @@
 requests
 PyYAML>=6.0
+pytest  # tests are offline; CI runs them without any API key

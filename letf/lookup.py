@@ -12,6 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
+# NOTE: the web UI (build_ui.py) carries a deliberately shorter version of this
+# in its footer. If the substance changes, update both surfaces.
 DECAY_CAVEAT = (
     "Leveraged/inverse ETFs reset daily — they do NOT deliver their multiple "
     "over periods longer than one day. Compounding and volatility decay erode "
