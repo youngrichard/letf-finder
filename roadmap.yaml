@@ -38,7 +38,7 @@ phases:
 
   - id: 2
     name: Tradability and freshness
-    status: in_progress
+    status: done
     goal: >
       Results a swing trader can act on (liquidity-ranked, complete universe)
       from data that stays current without maintenance.
@@ -48,7 +48,7 @@ phases:
       - text: ETNs included in the universe (FNGU-class products discoverable)
         done: true
       - text: every result shows avg daily $ volume; groups sorted by it
-        done: false
+        done: true
       - text: recognizer refactored to a single parse pass (no duplicate marker logic)
         done: true
     changelog:
@@ -76,6 +76,13 @@ phases:
           ETN coverage live: +37 products (774 total) incl. 19 MicroSectors
           notes (BULZ/BERZ, BNKU/BNKD, 3x AI). Recognizer needed zero rule
           changes to parse ETN naming.
+      - date: 2026-07-13
+        note: >
+          Liquidity shipped: grouped-daily enrichment (10 trading days, one
+          call per day), 774/774 funds covered. UI + CLI rank by avg $ volume;
+          sub-$1M/day rows dimmed as slippage risk. NVDA's four identical 2x
+          longs now show a 10,000x tradability spread ($422M/d vs $36K/d).
+          Weekly Action runs enrich automatically. Phase 2 done.
 
   - id: 3
     name: Smart layer

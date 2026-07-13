@@ -49,10 +49,12 @@ def lookup(ticker: str, universe: dict | None = None) -> dict:
             "factor": r["factor"],
             "direction": r["direction"],
             "confidence": r["confidence"],
+            "adv_usd": r.get("adv_usd"),
         }
         (direct if r["tier"] == "single_stock" else index).append(entry)
 
-    key = lambda e: (e["direction"] != "long", -(e["factor"] or 0))
+    # long before short; within a side, most-tradable first (liquidity rank)
+    key = lambda e: (e["direction"] != "long", -(e["adv_usd"] or 0))
     return {
         "query": t,
         "direct": sorted(direct, key=key),
@@ -70,8 +72,12 @@ def format_result(res: dict) -> str:
             lines.append(f"\n  {label}:")
             for e in res[tier]:
                 fac = f"{e['factor']:+g}x" if e["factor"] is not None else "?x"
+                v = e.get("adv_usd")
+                vol = (f"${v/1e9:.1f}B/d" if v and v >= 1e9
+                       else f"${v/1e6:.0f}M/d" if v and v >= 1e6
+                       else f"${v/1e3:.0f}K/d" if v else "     —")
                 flag = "" if e["confidence"] == "high" else f"  [{e['confidence']} confidence]"
-                lines.append(f"    {e['ticker']:6s} {fac:5s} {e['name']}{flag}")
+                lines.append(f"    {e['ticker']:6s} {fac:6s} {vol:>9s}  {e['name'][:52]}{flag}")
     if not res["direct"] and not res["index"]:
         lines.append("  (none found directly on this ticker)")
     lines.append(f"\n  ⚠ {res['caveat']}")

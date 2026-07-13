@@ -18,7 +18,7 @@ def main():
     # factor=None records can't be placed in the long/short groups — exclude
     # them from the UI payload rather than letting them vanish silently in JS.
     recs = [{"t": r["ticker"], "n": r["name"], "f": r["factor"],
-             "u": r["underlying"]}
+             "u": r["underlying"], "v": r.get("adv_usd")}
             for r in universe["records"] if r["factor"] is not None]
     out_dir = ROOT / "docs"  # served by GitHub Pages
     out_dir.mkdir(exist_ok=True)
@@ -54,9 +54,11 @@ border-radius:14px;background:var(--surface);color:var(--text);letter-spacing:-.
 .sec{font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;
 color:var(--muted);margin:26px 0 6px}
 .sec .n{color:var(--faint);font-weight:500;text-transform:none;letter-spacing:0}
-.row{display:grid;grid-template-columns:58px 64px 1fr;align-items:center;gap:14px;
+.row{display:grid;grid-template-columns:58px 64px 1fr 76px;align-items:center;gap:14px;
 padding:13px 10px;border-radius:10px;transition:.1s}
 .row:hover{background:var(--hover)}
+.row.thin{opacity:.5}
+.vol{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .badge{font-size:13px;font-weight:600;text-align:center;padding:4px 0;border-radius:7px;letter-spacing:-.01em}
 .b-long{background:var(--long-bg);color:var(--long)}
 .b-short{background:var(--short-bg);color:var(--short)}
@@ -77,9 +79,18 @@ const DATA=__DATA__;
 const q=document.getElementById("q"),out=document.getElementById("out");
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
 function fac(f){if(f==null)return "?";const s=f<0?"":"+";return s+(f%1?f:f.toFixed(0))+"\\u00D7"}
+function vol(v){
+  if(v==null)return "&mdash;";
+  if(v>=1e9)return "$"+(v/1e9).toFixed(1)+"B/d";
+  if(v>=1e6)return "$"+Math.round(v/1e6)+"M/d";
+  return "$"+Math.round(v/1e3)+"K/d";
+}
+const THIN=1e6; // under $1M/day: real slippage risk — dim it
 function card(r){
   const cls=r.f<0?"b-short":"b-long";
-  return `<div class="row"><span class="badge ${cls}">${fac(r.f)}</span><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.n)}</span></div>`;
+  const thin=(r.v??0)<THIN?" thin":"";
+  const title=thin?` title="thin liquidity — high slippage risk"`:"";
+  return `<div class="row${thin}"${title}><span class="badge ${cls}">${fac(r.f)}</span><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.n)}</span><span class="vol">${vol(r.v)}</span></div>`;
 }
 const CAP=60; // per group; substring searches can match hundreds of names
 function run(){
@@ -94,8 +105,11 @@ function run(){
     return r.t.toLowerCase().includes(s)||r.n.toLowerCase().includes(s);
   });
   if(!hits.length){out.innerHTML=`<p class="empty">Nothing matches &ldquo;${esc(s)}&rdquo;. Sector matches by holdings are coming in a later version.</p>`;return}
-  const bull=hits.filter(r=>r.f>0).sort((a,b)=>b.f-a.f);
-  const bear=hits.filter(r=>r.f<0).sort((a,b)=>a.f-b.f);
+  // tradability first: rank by dollar volume, not factor — a $2B/day 2x and a
+  // $200K/day 2x are not interchangeable. The badge still shows the factor.
+  const byVol=(a,b)=>(b.v??0)-(a.v??0);
+  const bull=hits.filter(r=>r.f>0).sort(byVol);
+  const bear=hits.filter(r=>r.f<0).sort(byVol);
   let h="";
   const grp=(list,label)=>{
     let g=`<div class="sec">${label}</div>`+list.slice(0,CAP).map(card).join("");

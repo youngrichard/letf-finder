@@ -34,6 +34,11 @@ jobs:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
         run: python -m letf.discover --refresh
 
+      - name: Attach liquidity (avg daily $ volume, 10 trading days)
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: python -m letf.enrich
+
       - name: Rebuild the UI
         run: python build_ui.py
 
