@@ -1,6 +1,6 @@
 project: letf-finder
 description: Find the leveraged / inverse ETFs related to any equity, self-updating.
-updated: 2026-07-06
+updated: 2026-07-13
 
 phases:
   - id: 1
@@ -37,25 +37,59 @@ phases:
           NVDA and QQQ lookups verified correct. Phase 1 done.
 
   - id: 2
+    name: Tradability and freshness
+    status: in_progress
+    goal: >
+      Results a swing trader can act on (liquidity-ranked, complete universe)
+      from data that stays current without maintenance.
+    success_criteria:
+      - text: weekly automated refresh keeps the live demo current (Action + Pages)
+        done: true
+      - text: ETNs included in the universe (FNGU-class products discoverable)
+        done: false
+      - text: every result shows avg daily $ volume; groups sorted by it
+        done: false
+      - text: recognizer refactored to a single parse pass (no duplicate marker logic)
+        done: false
+    changelog:
+      - date: 2026-07-13
+        note: >
+          Re-scoped from "Smart layer" after the swing-trader product review:
+          actionability (liquidity) and freshness beat sector mapping in value;
+          sector work moves to Phase 3. ETN gap found (0 MicroSectors products
+          in a type=ETF-only pull).
+      - date: 2026-07-13
+        note: >
+          Weekly refresh shipped and verified end-to-end: Bearer-header auth,
+          encrypted repo secret, cron + manual dispatch, bot commit, Pages
+          redeploy. Live demo regenerated 2026-07-13 by the Action itself.
+
+  - id: 3
     name: Smart layer
     status: planned
-    goal: Sector relatedness, per-fund metrics, and expense ratios.
+    goal: Sector relatedness and per-fund fundamentals.
     success_criteria:
       - text: NVDA surfaces SOXL/SOXS via a semiconductor-sector link
         done: false
-      - text: each result shows expense ratio and (optionally) live ATR%/extension
+      - text: each result shows expense ratio
         done: false
     changelog:
       - date: 2026-07-06
         note: Deferred from Phase 1 — needs holdings + a fundamentals source.
+      - date: 2026-07-13
+        note: Renumbered from Phase 2 in the tradability re-scope.
 
-  - id: 3
+  - id: 4
     name: Usable
-    status: planned
-    goal: A front-end anyone can use, with the risk caveats up front.
+    status: done
+    goal: A front-end anyone can use, with the risk caveats visible.
     success_criteria:
       - text: non-technical user can look up a ticker and understand the risks
-        done: false
+        done: true
     changelog:
       - date: 2026-07-06
         note: Deferred until data + smart layers prove out.
+      - date: 2026-07-13
+        note: >
+          Shipped ahead of order: dark search UI live at
+          youngrichard.github.io/letf-finder with decay note in the footer.
