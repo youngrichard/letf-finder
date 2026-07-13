@@ -41,17 +41,24 @@ def _key() -> str:
 
 
 def _fetch_all(ticker_type: str, cache: Path, refresh: bool) -> list[dict]:
-    """Page through /v3/reference/tickers for one type; cache the full list."""
+    """Page through /v3/reference/tickers for one type; cache the full list.
+
+    Auth is a Bearer header, never a query param — keys in URLs leak into
+    exception messages, logs, and proxies; keys in headers don't.
+    """
     if cache.exists() and not refresh:
         return json.loads(cache.read_text())
-    key = _key()
+    headers = {"Authorization": f"Bearer {_key()}"}
     out, url = [], f"{BASE}/v3/reference/tickers"
     params = {"type": ticker_type, "market": "stocks", "active": "true",
-              "limit": 1000, "apiKey": key}
-    page = 0
+              "limit": 1000}
+    page = rate_limited = 0
     while True:
-        r = requests.get(url, params=params, timeout=30)
+        r = requests.get(url, params=params, headers=headers, timeout=30)
         if r.status_code == 429:
+            rate_limited += 1
+            if rate_limited > 30:  # don't hang unattended runs forever
+                raise RuntimeError("persistent 429s from Polygon; giving up")
             time.sleep(15)
             continue
         r.raise_for_status()
@@ -62,7 +69,7 @@ def _fetch_all(ticker_type: str, cache: Path, refresh: bool) -> list[dict]:
         nxt = body.get("next_url")
         if not nxt:
             break
-        url, params = nxt, {"apiKey": key}  # next_url carries the cursor
+        url, params = nxt, None  # next_url carries the cursor; auth stays in header
         time.sleep(13)  # free-tier pacing (5/min)
     cache.write_text(json.dumps(out))
     return out

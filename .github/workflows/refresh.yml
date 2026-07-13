@@ -1,0 +1,50 @@
+name: Refresh universe
+
+on:
+  schedule:
+    - cron: "23 11 * * 1"   # Mondays 11:23 UTC (pre-US-open; odd minute avoids cron rush)
+  workflow_dispatch: {}      # manual trigger for testing
+
+# Least privilege: the job can write repo contents (to commit the rebuilt UI)
+# and nothing else. Secrets are never exposed to fork PRs because the only
+# triggers are schedule + manual dispatch.
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps (minimal surface)
+        run: pip install requests
+
+      - name: Rebuild universe from Polygon
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: python -m letf.discover --refresh
+
+      - name: Rebuild the UI
+        run: python build_ui.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          if git diff --cached --quiet; then
+            echo "no changes — universe unchanged this week"
+          else
+            git commit -m "Weekly universe refresh (automated)"
+            git push
+          fi
